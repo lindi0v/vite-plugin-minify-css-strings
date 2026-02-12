@@ -103,6 +103,30 @@ describe('vite-plugin-minify-css-strings', () => {
     expect(out).toBe(expected);
   });
 
+  it('supports inline declaration blocks (no selector)', async () => {
+    const plugin = minifyCssStrings();
+    const input = [
+      'const currentColor = "red";',
+      'const side = "left" as const;',
+      'const idx = 1;',
+      'const step = 10;',
+      'const styles = /*css*/`background-color: ${currentColor};',
+      'top: ${side === "left" ? idx * step : idx * step + 200}px;',
+      'animation-delay: ${idx * 300}ms`;',
+    ].join('\n');
+
+    const expected = [
+      'const currentColor = "red";',
+      'const side = "left" as const;',
+      'const idx = 1;',
+      'const step = 10;',
+      'const styles = /*css*/`background-color:${currentColor};top:${side === "left" ? idx * step : idx * step + 200}px;animation-delay:${idx * 300}ms`;',
+    ].join('\n');
+
+    const out = await runTransform(plugin, input, '/src/file.ts');
+    expect(out).toBe(expected);
+  });
+
   it('preserves interpolations in selectors', async () => {
     const plugin = minifyCssStrings();
     const input = [
